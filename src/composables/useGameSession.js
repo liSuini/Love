@@ -4,8 +4,8 @@ export function useGameSession() {
   const session = reactive({
     mode: null,
     players: [
-      { id: 'p1', nick: 'TA', score: 0, combo: 0 },
-      { id: 'p2', nick: '宝贝', score: 0, combo: 0 },
+      { id: 'p1', nick: '噜噜', score: 0, combo: 0 },
+      { id: 'p2', nick: '噜妹', score: 0, combo: 0 },
     ],
     currentPlayerIdx: 0,
     turnCount: 0,
