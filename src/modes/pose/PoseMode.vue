@@ -4,15 +4,22 @@
 
     <!-- 合力进度条 -->
     <div class="coop-bar">
-      <div class="coop-label">合力进度 <span class="coop-score">{{ totalScore }}</span> / {{ TARGET_SCORE }}</div>
+      <div class="coop-label">合力进度 <span class="coop-score">{{ sharedScore }}</span> / {{ TARGET_SCORE }}</div>
       <div class="coop-track">
         <div class="coop-fill" :style="{ width: progressPercent + '%' }"></div>
       </div>
     </div>
 
-    <!-- 玩家区 -->
-    <div class="players">
-      <PlayerCard v-for="(p, i) in session.players" :key="p.id" :player="p" :isActive="i === session.currentPlayerIdx" />
+    <!-- 合并玩家卡 -->
+    <div class="coop-players" :class="{ active: true }">
+      <div class="coop-avatars">
+        <img :src="luluImg" alt="噜噜" class="coop-avatar" :class="{ turn: session.currentPlayerIdx === 0 }" />
+        <span class="coop-heart">💕</span>
+        <img :src="lumeiImg" alt="噜妹" class="coop-avatar" :class="{ turn: session.currentPlayerIdx === 1 }" />
+      </div>
+      <div class="coop-names">噜噜 &amp; 噜妹</div>
+      <div class="coop-score-num">{{ sharedScore }}</div>
+      <div v-if="combo >= 2" class="combo-badge">连击 {{ combo }}🔥</div>
     </div>
 
     <!-- 主内容区 -->
@@ -69,20 +76,12 @@
       <div v-if="finished" class="coop-result">
         <div class="result-emoji">🎉</div>
         <div class="result-title">挑战完成！</div>
-        <div class="result-scores">
-          <div class="result-player">
-            <div class="result-avatar"><img :src="luluImg" alt="噜噜" /></div>
-            <div class="nick">噜噜</div>
-            <div class="score">{{ session.players[0].score }}</div>
-          </div>
-          <div class="result-vs">💕</div>
-          <div class="result-player">
-            <div class="result-avatar"><img :src="lumeiImg" alt="噜妹" /></div>
-            <div class="nick">噜妹</div>
-            <div class="score">{{ session.players[1].score }}</div>
-          </div>
+        <div class="result-avatars">
+          <img :src="luluImg" alt="噜噜" class="result-avatar" />
+          <span class="result-heart">💕</span>
+          <img :src="lumeiImg" alt="噜妹" class="result-avatar" />
         </div>
-        <div class="result-total">合力 {{ totalScore }} 分</div>
+        <div class="result-total">合力 {{ sharedScore }} 分</div>
         <div class="result-summary">{{ resultSummary }}</div>
         <div class="result-actions">
           <button class="btn-primary" @click="restart">再来一局</button>
@@ -103,13 +102,12 @@ import { useGameSession } from '../../composables/useGameSession'
 import { useAudio } from '../../composables/useAudio'
 import { CardLibrary } from '../../services/CardLibrary'
 import poseData from '../../data/poses.json'
-import PlayerCard from '../../components/PlayerCard.vue'
 import ScoreBoard from '../../components/ScoreBoard.vue'
 import luluImg from '../../assets/avatars/lulu.jpg'
 import lumeiImg from '../../assets/avatars/lumei.jpg'
 
 const router = useRouter()
-const { session, startMode, switchPlayer, addScore, checkCombo, resetCombo, finishGame, reset } = useGameSession()
+const { session, startMode, switchPlayer, finishGame, reset } = useGameSession()
 const { playEffect } = useAudio()
 
 const TARGET_SCORE = 100
@@ -121,13 +119,13 @@ const currentPose = ref(null)
 const currentPoints = ref(0)
 const finished = ref(false)
 const comboFx = ref(false)
+const sharedScore = ref(0)
+const combo = ref(0)
 
 const currentPlayer = computed(() => session.players[session.currentPlayerIdx])
-const totalScore = computed(() => session.players[0].score + session.players[1].score)
-const progressPercent = computed(() => Math.min(100, (totalScore.value / TARGET_SCORE) * 100))
+const progressPercent = computed(() => Math.min(100, (sharedScore.value / TARGET_SCORE) * 100))
 
 const resultSummary = computed(() => {
-  const total = totalScore.value
   const r = round.value
   if (r <= 6) return `${r}回合即通关，你们的默契满分！💕`
   if (r <= 10) return `经过${r}回合努力，配合越来越好 🥰`
@@ -143,6 +141,8 @@ function restart() {
   round.value = 1
   currentPose.value = null
   finished.value = false
+  sharedScore.value = 0
+  combo.value = 0
 }
 
 function categoryEmoji(cat) {
@@ -165,18 +165,19 @@ function nextPose() {
 }
 
 function completePose() {
-  const pid = currentPlayer.value.id
-  addScore(pid, currentPoints.value)
+  sharedScore.value += currentPoints.value
   playEffect('score')
-  const combo = checkCombo(pid)
-  if (combo) {
+  combo.value++
+  if (combo.value >= 3) {
+    sharedScore.value += 5
+    combo.value = 0
     playEffect('combo')
     comboFx.value = true
     setTimeout(() => { comboFx.value = false }, 1000)
   }
   currentPose.value = null
 
-  if (totalScore.value >= TARGET_SCORE) {
+  if (sharedScore.value >= TARGET_SCORE) {
     finished.value = true
     finishGame({})
     return
@@ -185,7 +186,7 @@ function completePose() {
 }
 
 function skipPose() {
-  resetCombo(currentPlayer.value.id)
+  combo.value = 0
   currentPose.value = null
   endTurn()
 }
@@ -206,7 +207,25 @@ function endTurn() {
 .coop-track { height: 10px; background: rgba(0,0,0,0.08); border-radius: 10px; overflow: hidden; }
 .coop-fill { height: 100%; background: linear-gradient(90deg, var(--c-primary), var(--c-secondary)); border-radius: 10px; transition: width 0.5s ease; }
 
-.players { display: flex; gap: 12px; margin-bottom: 16px; flex-shrink: 0; }
+/* 合并玩家卡 */
+.coop-players {
+  background: var(--c-card); border-radius: var(--radius); padding: 14px 16px;
+  text-align: center; box-shadow: var(--shadow); border: 2px solid var(--c-primary);
+  margin-bottom: 16px; flex-shrink: 0; position: relative;
+}
+.coop-avatars { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; }
+.coop-avatar {
+  width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+  border: 2px solid transparent; transition: all 0.3s; opacity: 0.5;
+}
+.coop-avatar.turn { border-color: var(--c-primary); opacity: 1; transform: scale(1.1); }
+.coop-heart { font-size: 16px; }
+.coop-names { font-size: 14px; font-weight: 600; color: var(--c-muted); margin-bottom: 4px; }
+.coop-score-num { font-size: 32px; font-weight: 800; color: var(--c-primary); }
+.combo-badge {
+  position: absolute; top: -8px; right: -8px; background: var(--c-secondary);
+  color: #333; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 700;
+}
 
 .pose-main { flex: 1; display: flex; flex-direction: column; justify-content: center; }
 
@@ -278,14 +297,10 @@ function endTurn() {
 .coop-result { text-align: center; padding: 30px 20px; }
 .result-emoji { font-size: 56px; margin-bottom: 12px; }
 .result-title { font-size: 26px; font-weight: 800; color: var(--c-primary); margin-bottom: 24px; }
-.result-scores { display: flex; gap: 16px; justify-content: center; align-items: center; margin-bottom: 20px; }
-.result-player { background: var(--c-card); border-radius: var(--radius); padding: 20px 16px; min-width: 120px; box-shadow: var(--shadow); }
-.result-vs { font-size: 28px; }
-.result-avatar { width: 56px; height: 56px; margin: 0 auto 6px; border-radius: 50%; overflow: hidden; border: 2px solid var(--c-primary); }
-.result-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.nick { font-size: 14px; color: var(--c-muted); margin-bottom: 6px; }
-.score { font-size: 32px; font-weight: 800; color: var(--c-primary); }
-.result-total { font-size: 22px; font-weight: 800; color: var(--c-secondary); margin-bottom: 12px; }
+.result-avatars { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
+.result-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid var(--c-primary); }
+.result-heart { font-size: 24px; }
+.result-total { font-size: 28px; font-weight: 800; color: var(--c-secondary); margin-bottom: 12px; }
 .result-summary { font-size: 16px; line-height: 1.8; margin-bottom: 28px; }
 .result-actions { display: flex; gap: 12px; justify-content: center; }
 .btn-secondary { background: transparent; color: var(--c-muted); border: 1px solid var(--c-border); border-radius: 14px; padding: 14px 28px; font-size: 16px; cursor: pointer; }
@@ -303,6 +318,6 @@ function endTurn() {
   .pose-name { font-size: 19px; }
   .step-list li { font-size: 12px; }
   .btn-primary { padding: 10px 22px; font-size: 15px; }
-  .result-player { min-width: 100px; padding: 16px 12px; }
+  .coop-avatar { width: 34px; height: 34px; }
 }
 </style>
