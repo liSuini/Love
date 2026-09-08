@@ -2,6 +2,14 @@
   <div class="pose-mode">
     <ScoreBoard icon="🧘" title="姿势大挑战" :turnInfo="`第 ${round} 轮 · ${currentPlayer.nick}的回合`" @back="goHome" />
 
+    <!-- 合力进度条 -->
+    <div class="coop-bar">
+      <div class="coop-label">合力进度 <span class="coop-score">{{ totalScore }}</span> / {{ TARGET_SCORE }}</div>
+      <div class="coop-track">
+        <div class="coop-fill" :style="{ width: progressPercent + '%' }"></div>
+      </div>
+    </div>
+
     <!-- 玩家区 -->
     <div class="players">
       <PlayerCard v-for="(p, i) in session.players" :key="p.id" :player="p" :isActive="i === session.currentPlayerIdx" />
@@ -13,7 +21,7 @@
         <div class="pose-intro">
           <div class="intro-icon">🧘</div>
           <div class="intro-title">姿势大挑战</div>
-          <div class="intro-desc">抽卡解锁亲密姿势教学<br>情侣配合完成 · 先到100分获胜</div>
+          <div class="intro-desc">抽卡解锁亲密姿势教学<br>两人合力完成 · 累计{{ TARGET_SCORE }}分即通关</div>
           <button class="btn-primary" @click="drawPose">抽取姿势卡</button>
         </div>
       </template>
@@ -58,12 +66,29 @@
       </template>
 
       <!-- 结算页 -->
-      <ResultScreen v-if="finished"
-        emoji="💓" title="姿势大挑战" icon="🧘"
-        :players="session.players" :winner="winner"
-        :extra="resultExtra" :summary="resultSummary"
-        @restart="restart" @home="goHome"
-      />
+      <div v-if="finished" class="coop-result">
+        <div class="result-emoji">🎉</div>
+        <div class="result-title">挑战完成！</div>
+        <div class="result-scores">
+          <div class="result-player">
+            <div class="crown">🧑</div>
+            <div class="nick">噜噜</div>
+            <div class="score">{{ session.players[0].score }}</div>
+          </div>
+          <div class="result-vs">💕</div>
+          <div class="result-player">
+            <div class="crown">💕</div>
+            <div class="nick">噜妹</div>
+            <div class="score">{{ session.players[1].score }}</div>
+          </div>
+        </div>
+        <div class="result-total">合力 {{ totalScore }} 分</div>
+        <div class="result-summary">{{ resultSummary }}</div>
+        <div class="result-actions">
+          <button class="btn-primary" @click="restart">再来一局</button>
+          <button class="btn-secondary" @click="goHome">返回首页</button>
+        </div>
+      </div>
     </div>
 
     <!-- 连击特效 -->
@@ -80,7 +105,6 @@ import { CardLibrary } from '../../services/CardLibrary'
 import poseData from '../../data/poses.json'
 import PlayerCard from '../../components/PlayerCard.vue'
 import ScoreBoard from '../../components/ScoreBoard.vue'
-import ResultScreen from '../../components/ResultScreen.vue'
 
 const router = useRouter()
 const { session, startMode, switchPlayer, addScore, checkCombo, resetCombo, finishGame, reset } = useGameSession()
@@ -97,29 +121,15 @@ const finished = ref(false)
 const comboFx = ref(false)
 
 const currentPlayer = computed(() => session.players[session.currentPlayerIdx])
-
-const winner = computed(() => {
-  if (!finished.value) return null
-  const [p1, p2] = session.players
-  return p1.score >= p2.score ? p1 : p2
-})
+const totalScore = computed(() => session.players[0].score + session.players[1].score)
+const progressPercent = computed(() => Math.min(100, (totalScore.value / TARGET_SCORE) * 100))
 
 const resultSummary = computed(() => {
-  const [p1, p2] = session.players
-  const diff = Math.abs(p1.score - p2.score)
-  if (diff === 0) return '势均力敌！你们配合得天衣无缝 💕'
-  const w = winner.value
-  const l = w === p1 ? p2 : p1
-  if (diff <= 5) return `${w.nick}险胜！你们的默契只差一点点 💕`
-  if (diff <= 15) return `${w.nick}完胜！今晚${l.nick}要好好配合 🥰`
-  return `${w.nick}大获全胜！解锁了超多新姿势 😏`
-})
-
-const resultExtra = computed(() => {
-  if (!finished.value) return ''
-  const diff = Math.abs(session.players[0].score - session.players[1].score)
-  if (diff === 0) return '平局！'
-  return `${winner.value.nick} 获胜！`
+  const total = totalScore.value
+  const r = round.value
+  if (r <= 6) return `${r}回合即通关，你们的默契满分！💕`
+  if (r <= 10) return `经过${r}回合努力，配合越来越好 🥰`
+  return `${r}回合坚持不懈，过程比结果更甜蜜 😏`
 })
 
 startMode('pose')
@@ -164,7 +174,7 @@ function completePose() {
   }
   currentPose.value = null
 
-  if (session.players[0].score >= TARGET_SCORE || session.players[1].score >= TARGET_SCORE) {
+  if (totalScore.value >= TARGET_SCORE) {
     finished.value = true
     finishGame({})
     return
@@ -186,6 +196,14 @@ function endTurn() {
 
 <style scoped>
 .pose-mode { padding: 16px 20px; display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+
+/* 合力进度条 */
+.coop-bar { margin-bottom: 14px; flex-shrink: 0; }
+.coop-label { font-size: 13px; font-weight: 600; color: var(--c-text); margin-bottom: 6px; }
+.coop-score { color: var(--c-primary); font-weight: 800; font-size: 16px; }
+.coop-track { height: 10px; background: rgba(0,0,0,0.08); border-radius: 10px; overflow: hidden; }
+.coop-fill { height: 100%; background: linear-gradient(90deg, var(--c-primary), var(--c-secondary)); border-radius: 10px; transition: width 0.5s ease; }
+
 .players { display: flex; gap: 12px; margin-bottom: 16px; flex-shrink: 0; }
 
 .pose-main { flex: 1; display: flex; flex-direction: column; justify-content: center; }
@@ -199,7 +217,7 @@ function endTurn() {
 /* 姿势教学卡 */
 .pose-card {
   background: var(--c-card); border-radius: var(--radius); padding: 20px 18px;
-  box-shadow: var(--shadow); margin-bottom: 16px; max-height: 60vh; overflow-y: auto;
+  box-shadow: var(--shadow); margin-bottom: 16px; max-height: 55vh; overflow-y: auto;
   border-top: 4px solid var(--c-primary);
 }
 .pose-card.cat-经典 { border-top-color: #4ecdc4; }
@@ -254,6 +272,21 @@ function endTurn() {
 }
 .btn-skip:hover, .btn-next:hover { border-color: var(--c-primary); }
 
+/* 合力结算页 */
+.coop-result { text-align: center; padding: 30px 20px; }
+.result-emoji { font-size: 56px; margin-bottom: 12px; }
+.result-title { font-size: 26px; font-weight: 800; color: var(--c-primary); margin-bottom: 24px; }
+.result-scores { display: flex; gap: 16px; justify-content: center; align-items: center; margin-bottom: 20px; }
+.result-player { background: var(--c-card); border-radius: var(--radius); padding: 20px 16px; min-width: 120px; box-shadow: var(--shadow); }
+.result-vs { font-size: 28px; }
+.crown { font-size: 32px; margin-bottom: 6px; }
+.nick { font-size: 14px; color: var(--c-muted); margin-bottom: 6px; }
+.score { font-size: 32px; font-weight: 800; color: var(--c-primary); }
+.result-total { font-size: 22px; font-weight: 800; color: var(--c-secondary); margin-bottom: 12px; }
+.result-summary { font-size: 16px; line-height: 1.8; margin-bottom: 28px; }
+.result-actions { display: flex; gap: 12px; justify-content: center; }
+.btn-secondary { background: transparent; color: var(--c-muted); border: 1px solid var(--c-border); border-radius: 14px; padding: 14px 28px; font-size: 16px; cursor: pointer; }
+
 .combo-fx {
   position: fixed; top: 35%; left: 50%; transform: translate(-50%, -50%);
   font-size: 48px; font-weight: 900; color: var(--c-secondary);
@@ -267,5 +300,6 @@ function endTurn() {
   .pose-name { font-size: 19px; }
   .step-list li { font-size: 12px; }
   .btn-primary { padding: 10px 22px; font-size: 15px; }
+  .result-player { min-width: 100px; padding: 16px 12px; }
 }
 </style>
