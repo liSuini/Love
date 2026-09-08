@@ -20,8 +20,8 @@
           <span class="tile-icon">{{ tile.icon }}</span>
           <span class="tile-label">{{ tile.label }}</span>
           <div class="tile-avatars">
-            <span v-if="p1Pos === tile.pos" class="avatar p1-avatar">🧑</span>
-            <span v-if="p2Pos === tile.pos" class="avatar p2-avatar">💕</span>
+            <img v-if="p1Pos === tile.pos" :src="luluImg" class="avatar p1-avatar" />
+            <img v-if="p2Pos === tile.pos" :src="lumeiImg" class="avatar p2-avatar" />
           </div>
         </div>
       </div>
@@ -86,6 +86,8 @@ import PlayerCard from '../../components/PlayerCard.vue'
 import CardModal from '../../components/CardModal.vue'
 import ScoreBoard from '../../components/ScoreBoard.vue'
 import ResultScreen from '../../components/ResultScreen.vue'
+import luluImg from '../../assets/avatars/lulu.jpg'
+import lumeiImg from '../../assets/avatars/lumei.jpg'
 
 const router = useRouter()
 const { session, startMode, switchPlayer, addScore, checkCombo, resetCombo, finishGame, reset } = useGameSession()
@@ -417,8 +419,14 @@ function showTileInfo(tile) {
 .tile-label { font-size: 10px; font-weight: 600; line-height: 1.2; }
 .tile-avatars {
   position: absolute; top: 2px; right: 4px;
-  display: flex; gap: 2px; font-size: 12px;
+  display: flex; gap: 2px;
 }
+.tile-avatars .avatar {
+  width: 18px; height: 18px; border-radius: 50%; object-fit: cover;
+  border: 1.5px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.p1-avatar { border-color: var(--c-primary) !important; }
+.p2-avatar { border-color: var(--c-secondary) !important; }
 .tile.has-p1 { box-shadow: 0 0 15px rgba(255,107,157,0.5); }
 .tile.has-p2 { box-shadow: 0 0 15px rgba(78,205,196,0.5); }
 

@@ -11,7 +11,7 @@
     <div v-if="quizPhase === 'p1'" class="quiz-area">
       <div class="quiz-progress">轮流回答同一道题，测试你们的默契</div>
       <div class="quiz-question">
-        <div class="who">{{ '🧑 ' + session.players[0].nick }} 回答</div>
+        <div class="who"><img :src="luluImg" class="who-avatar" /> {{ session.players[0].nick }} 回答</div>
         <div class="text">{{ currentQuestion.question }}</div>
       </div>
       <input ref="inputRef" v-model="p1Answer" type="text" class="quiz-input" placeholder="输入你的答案..." @keydown.enter="submitP1">
@@ -21,7 +21,7 @@
     <div v-else-if="quizPhase === 'p2'" class="quiz-area">
       <div class="quiz-progress">轮到另一半了，别偷看哦～</div>
       <div class="quiz-question">
-        <div class="who">{{ '💕 ' + session.players[1].nick }} 回答</div>
+        <div class="who"><img :src="lumeiImg" class="who-avatar" /> {{ session.players[1].nick }} 回答</div>
         <div class="text">{{ currentQuestion.question }}</div>
       </div>
       <input ref="inputRef" v-model="p2Answer" type="text" class="quiz-input" placeholder="输入你的答案..." @keydown.enter="submitP2">
@@ -67,6 +67,8 @@ import punishments from '../../data/punishments.json'
 import PlayerCard from '../../components/PlayerCard.vue'
 import ScoreBoard from '../../components/ScoreBoard.vue'
 import ResultScreen from '../../components/ResultScreen.vue'
+import luluImg from '../../assets/avatars/lulu.jpg'
+import lumeiImg from '../../assets/avatars/lumei.jpg'
 
 const router = useRouter()
 const { session, startMode, addScore, reset } = useGameSession()
@@ -166,7 +168,8 @@ function restart() {
   background: var(--c-card); border-radius: var(--radius); padding: 28px 24px;
   box-shadow: var(--shadow); margin-bottom: 24px; animation: fadeInUp 0.4s ease;
 }
-.who { font-size: 14px; font-weight: 600; color: var(--c-primary); margin-bottom: 12px; }
+.who { font-size: 14px; font-weight: 600; color: var(--c-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.who-avatar { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--c-primary); }
 .text { font-size: 20px; font-weight: 600; line-height: 1.6; }
 .quiz-input {
   width: 90%; padding: 14px 18px; border: 2px solid var(--c-border);

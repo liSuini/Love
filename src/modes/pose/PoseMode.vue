@@ -71,13 +71,13 @@
         <div class="result-title">挑战完成！</div>
         <div class="result-scores">
           <div class="result-player">
-            <div class="crown">🧑</div>
+            <div class="result-avatar"><img :src="luluImg" alt="噜噜" /></div>
             <div class="nick">噜噜</div>
             <div class="score">{{ session.players[0].score }}</div>
           </div>
           <div class="result-vs">💕</div>
           <div class="result-player">
-            <div class="crown">💕</div>
+            <div class="result-avatar"><img :src="lumeiImg" alt="噜妹" /></div>
             <div class="nick">噜妹</div>
             <div class="score">{{ session.players[1].score }}</div>
           </div>
@@ -105,6 +105,8 @@ import { CardLibrary } from '../../services/CardLibrary'
 import poseData from '../../data/poses.json'
 import PlayerCard from '../../components/PlayerCard.vue'
 import ScoreBoard from '../../components/ScoreBoard.vue'
+import luluImg from '../../assets/avatars/lulu.jpg'
+import lumeiImg from '../../assets/avatars/lumei.jpg'
 
 const router = useRouter()
 const { session, startMode, switchPlayer, addScore, checkCombo, resetCombo, finishGame, reset } = useGameSession()
@@ -279,7 +281,8 @@ function endTurn() {
 .result-scores { display: flex; gap: 16px; justify-content: center; align-items: center; margin-bottom: 20px; }
 .result-player { background: var(--c-card); border-radius: var(--radius); padding: 20px 16px; min-width: 120px; box-shadow: var(--shadow); }
 .result-vs { font-size: 28px; }
-.crown { font-size: 32px; margin-bottom: 6px; }
+.result-avatar { width: 56px; height: 56px; margin: 0 auto 6px; border-radius: 50%; overflow: hidden; border: 2px solid var(--c-primary); }
+.result-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .nick { font-size: 14px; color: var(--c-muted); margin-bottom: 6px; }
 .score { font-size: 32px; font-weight: 800; color: var(--c-primary); }
 .result-total { font-size: 22px; font-weight: 800; color: var(--c-secondary); margin-bottom: 12px; }

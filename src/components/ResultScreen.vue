@@ -3,7 +3,10 @@
     <div class="result-title">{{ emoji }} {{ title }} {{ emoji }}</div>
     <div class="result-scores">
       <div v-for="p in players" :key="p.id" class="result-player" :class="{ winner: p === winner }">
-        <div class="crown">{{ p === winner ? '👑' : icon }}</div>
+        <div class="crown">
+          <img v-if="p.id === 'p1'" :src="luluImg" :alt="p.nick" class="result-avatar-img" />
+          <img v-else :src="lumeiImg" :alt="p.nick" class="result-avatar-img" />
+        </div>
         <div class="nick">{{ p.nick }}</div>
         <div class="score">{{ p.score }}</div>
       </div>
@@ -18,6 +21,9 @@
 </template>
 
 <script setup>
+import luluImg from '../assets/avatars/lulu.jpg'
+import lumeiImg from '../assets/avatars/lumei.jpg'
+
 defineProps({ emoji: String, title: String, icon: String, players: Array, winner: Object, summary: String, extra: String })
 defineEmits(['restart', 'home'])
 </script>
@@ -28,7 +34,8 @@ defineEmits(['restart', 'home'])
 .result-scores { display: flex; gap: 20px; justify-content: center; margin-bottom: 28px; }
 .result-player { background: var(--c-card); border-radius: var(--radius); padding: 24px 20px; min-width: 140px; box-shadow: var(--shadow); }
 .result-player.winner { border: 3px solid var(--c-primary); }
-.crown { font-size: 32px; margin-bottom: 8px; }
+.crown { width: 56px; height: 56px; margin: 0 auto 8px; }
+.result-avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--c-primary); }
 .nick { font-size: 15px; margin-bottom: 8px; color: var(--c-muted); }
 .score { font-size: 36px; font-weight: 800; color: var(--c-primary); }
 .result-extra { font-weight: 800; font-size: 22px; color: var(--c-primary); margin-bottom: 12px; }
