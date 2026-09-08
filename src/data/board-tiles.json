@@ -1,0 +1,22 @@
+[
+  {"id":"tile-0","pos":0,"type":"start","label":"起点","icon":"🏠"},
+  {"id":"tile-1","pos":1,"type":"intimate-reward","label":"情趣奖励","icon":"💋"},
+  {"id":"tile-2","pos":2,"type":"task","label":"任务","icon":"✨"},
+  {"id":"tile-3","pos":3,"type":"truth","label":"真心话","icon":"💬"},
+  {"id":"tile-4","pos":4,"type":"intimate-punish","label":"情趣惩罚","icon":"🔥"},
+  {"id":"tile-5","pos":5,"type":"event","label":"命运","icon":"🎲"},
+  {"id":"tile-6","pos":6,"type":"intimate-reward","label":"情趣奖励","icon":"💋"},
+  {"id":"tile-7","pos":7,"type":"bonus","label":"惊喜","icon":"🎁"},
+  {"id":"tile-8","pos":8,"type":"intimate-punish","label":"情趣惩罚","icon":"🔥"},
+  {"id":"tile-9","pos":9,"type":"rest","label":"休息","icon":"😴"},
+  {"id":"tile-10","pos":10,"type":"task","label":"任务","icon":"✨"},
+  {"id":"tile-11","pos":11,"type":"intimate-reward","label":"情趣奖励","icon":"💋"},
+  {"id":"tile-12","pos":12,"type":"truth","label":"真心话","icon":"💬"},
+  {"id":"tile-13","pos":13,"type":"intimate-punish","label":"情趣惩罚","icon":"🔥"},
+  {"id":"tile-14","pos":14,"type":"event","label":"命运","icon":"🎲"},
+  {"id":"tile-15","pos":15,"type":"intimate-reward","label":"情趣奖励","icon":"💋"},
+  {"id":"tile-16","pos":16,"type":"task","label":"任务","icon":"✨"},
+  {"id":"tile-17","pos":17,"type":"intimate-punish","label":"情趣惩罚","icon":"🔥"},
+  {"id":"tile-18","pos":18,"type":"bonus","label":"惊喜","icon":"🎁"},
+  {"id":"tile-19","pos":19,"type":"truth","label":"真心话","icon":"💬"}
+]

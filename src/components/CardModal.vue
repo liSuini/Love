@@ -14,8 +14,8 @@ import { computed } from 'vue'
 const props = defineProps({ visible: Boolean, cardType: String, content: String })
 defineEmits(['close'])
 
-const typeNames = { task: '任务卡', truth: '真心话', punishment: '惩罚卡', bonus: '奖励卡', event: '转盘事件' }
-const typeEmojis = { task: '💋', truth: '💬', punishment: '🔥', bonus: '🎁', event: '🎡' }
+const typeNames = { task: '任务卡', truth: '真心话', punishment: '惩罚卡', bonus: '奖励卡', event: '转盘事件', 'intimate-reward': '情趣奖励卡', 'intimate-punish': '情趣惩罚卡' }
+const typeEmojis = { task: '✨', truth: '💬', punishment: '🔥', bonus: '🎁', event: '🎡', 'intimate-reward': '💋', 'intimate-punish': '🔥' }
 const typeName = computed(() => typeNames[props.cardType] || '')
 const typeEmoji = computed(() => typeEmojis[props.cardType] || '')
 </script>
@@ -42,6 +42,8 @@ const typeEmoji = computed(() => typeEmojis[props.cardType] || '')
 .card-type.punishment { background: #f5576c; }
 .card-type.bonus { background: #ffd93d; color: #333; }
 .card-type.event { background: var(--c-primary); }
+.card-type.intimate-reward { background: #ff6b9d; }
+.card-type.intimate-punish { background: #f5576c; }
 .card-content {
   font-size: 20px; line-height: 1.6; font-weight: 500; margin-bottom: 28px; min-height: 80px;
 }

@@ -1,0 +1,10 @@
+[
+  {"id":"evt-1","label":"心电感应","description":"双方交换位置，感受对方的处境","effect":"swap"},
+  {"id":"evt-2","label":"幸运降临","description":"额外获得一次投骰机会","effect":"extra-turn"},
+  {"id":"evt-3","label":"甜蜜加成","description":"立即获得5点甜蜜值","effect":"add-score"},
+  {"id":"evt-4","label":"小风波","description":"失去3点甜蜜值，但感情更牢固","effect":"lose-score"},
+  {"id":"evt-5","label":"命运推动","description":"立即前进3格","effect":"forward"},
+  {"id":"evt-6","label":"时光倒流","description":"后退3格，重新面对命运","effect":"backward"},
+  {"id":"evt-7","label":"双倍心动","description":"本次得分翻倍（下次完成挑战时生效）","effect":"double"},
+  {"id":"evt-8","label":"命中注定","description":"直接触发一张情趣奖励卡","effect":"free-reward"}
+]
