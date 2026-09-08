@@ -1,0 +1,26 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--c-bg, #fff0f5);
+  color: var(--c-text, #4a3340);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background 0.4s, color 0.4s;
+}
+button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+input { font-family: inherit; }
+.hidden { display: none !important; }
+
+/* 移动端响应式 */
+@media (max-width: 480px) {
+  .home-title { font-size: 26px !important; }
+  .mode-card { padding: 20px 16px !important; }
+  .player-card .score { font-size: 24px !important; }
+  .card-content { font-size: 18px !important; }
+  .btn-primary { padding: 12px 32px !important; font-size: 16px !important; }
+  .result-title { font-size: 24px !important; }
+  .result-player { min-width: 120px !important; padding: 20px 16px !important; }
+  .result-player .score { font-size: 30px !important; }
+}
