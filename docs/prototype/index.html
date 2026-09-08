@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="sweet">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>心动回合战 - 原型验证</title>
+<style>
+  /* ===== 主题变量 ===== */
+  :root, [data-theme="sweet"] {
+    --c-primary: #ff6b9d;
+    --c-secondary: #ffd93d;
+    --c-bg: #fff0f5;
+    --c-card: #ffffff;
+    --c-text: #4a3340;
+    --c-muted: #b08a9a;
+    --c-border: rgba(255,107,157,0.2);
+    --radius: 18px;
+    --shadow: 0 8px 30px rgba(255,107,157,0.18);
+    --font: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+  [data-theme="midnight"] {
+    --c-primary: #c44b6e;
+    --c-secondary: #eab676;
+    --c-bg: #1a0e1a;
+    --c-card: #2d1b2d;
+    --c-text: #f0e0e8;
+    --c-muted: #8a6a7a;
+    --c-border: rgba(196,75,110,0.3);
+    --radius: 14px;
+    --shadow: 0 8px 30px rgba(0,0,0,0.5);
+  }
+  [data-theme="rainbow"] {
+    --c-primary: #ff6b6b;
+    --c-secondary: #4ecdc4;
+    --c-bg: linear-gradient(135deg, #667eea 0%, #f093fb 50%, #f5576c 100%);
+    --c-bg-solid: #667eea;
+    --c-card: rgba(255,255,255,0.95);
+    --c-text: #2d3748;
+    --c-muted: #718096;
+    --c-border: rgba(255,255,255,0.3);
+    --radius: 20px;
+    --shadow: 0 8px 30px rgba(0,0,0,0.25);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: var(--font);
+    background: var(--c-bg);
+    color: var(--c-text);
+    min-height: 100vh;
+    transition: background 0.4s, color 0.4s;
+    overflow-x: hidden;
+  }
+
+  /* ===== 顶部栏 ===== */
+  .topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 20px;
+    background: var(--c-card);
+    box-shadow: var(--shadow);
+    border-bottom: 1px solid var(--c-border);
+  }
+  .topbar h1 { font-size: 20px; font-weight: 700; color: var(--c-primary); }
+  .topbar-right { display: flex; gap: 10px; }
+  .btn-sm {
+    padding: 6px 14px; border: 1px solid var(--c-border); border-radius: 10px;
+    background: transparent; color: var(--c-text); cursor: pointer; font-size: 13px;
+    transition: all 0.2s;
+  }
+  .btn-sm:hover { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+  .btn-sm.active { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
+
+  /* ===== 首页 ===== */
+  .home { max-width: 600px; margin: 0 auto; padding: 40px 20px; text-align: center; }
+  .home-title { font-size: 32px; font-weight: 800; color: var(--c-primary); margin-bottom: 8px; }
+  .home-sub { font-size: 15px; color: var(--c-muted); margin-bottom: 36px; }
+  .mode-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  .mode-card {
+    background: var(--c-card); border-radius: var(--radius); padding: 28px 24px;
+    cursor: pointer; box-shadow: var(--shadow); border: 2px solid transparent;
+    transition: all 0.3s; text-align: left; position: relative; overflow: hidden;
+  }
+  .mode-card:hover { border-color: var(--c-primary); transform: translateY(-3px); }
+  .mode-card .icon { font-size: 40px; margin-bottom: 12px; display: block; }
+  .mode-card .name { font-size: 20px; font-weight: 700; margin-bottom: 6px; color: var(--c-primary); }
+  .mode-card .desc { font-size: 14px; color: var(--c-muted); }
+  .mode-card::after {
+    content: '→'; position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
+    font-size: 24px; color: var(--c-primary); opacity: 0; transition: opacity 0.3s;
+  }
+  .mode-card:hover::after { opacity: 1; }
+
+  /* ===== 游戏页 ===== */
+  .game { max-width: 600px; margin: 0 auto; padding: 16px 20px; }
+  .game-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; padding: 12px 16px; background: var(--c-card);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+  .game-header .mode-name { font-size: 16px; font-weight: 700; color: var(--c-primary); }
+  .game-header .turn-info { font-size: 13px; color: var(--c-muted); }
+  .btn-back {
+    background: none; border: none; color: var(--c-muted); cursor: pointer; font-size: 20px;
+  }
+
+  /* 玩家区 */
+  .players { display: flex; gap: 12px; margin-bottom: 24px; }
+  .player-card {
+    flex: 1; background: var(--c-card); border-radius: var(--radius); padding: 16px;
+    text-align: center; box-shadow: var(--shadow); border: 2px solid transparent;
+    transition: all 0.3s; position: relative;
+  }
+  .player-card.active { border-color: var(--c-primary); animation: pulse 2s ease infinite; }
+  @keyframes pulse { 0%,100% { box-shadow: var(--shadow); } 50% { box-shadow: 0 0 25px var(--c-primary); } }
+  .player-card .emoji { font-size: 32px; margin-bottom: 6px; }
+  .player-card .nick { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .player-card .score { font-size: 28px; font-weight: 800; color: var(--c-primary); }
+  .player-card .combo-badge {
+    position: absolute; top: -8px; right: -8px; background: var(--c-secondary);
+    color: #333; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 700;
+    opacity: 0; transform: scale(0); transition: all 0.3s;
+  }
+  .player-card .combo-badge.show { opacity: 1; transform: scale(1); }
+
+  /* 骰子区 */
+  .dice-area { text-align: center; padding: 30px 0; }
+  .dice {
+    width: 80px; height: 80px; background: var(--c-card); border-radius: 16px;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
+    font-size: 48px; box-shadow: var(--shadow); border: 2px solid var(--c-border);
+    transition: transform 0.1s;
+  }
+  .dice.rolling { animation: shake 0.5s ease infinite; }
+  @keyframes shake {
+    0% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(15deg) scale(1.1); }
+    50% { transform: rotate(-10deg) scale(1.05); }
+    75% { transform: rotate(8deg) scale(1.08); }
+    100% { transform: rotate(0deg) scale(1); }
+  }
+  .btn-primary {
+    background: var(--c-primary); color: #fff; border: none; border-radius: 14px;
+    padding: 14px 40px; font-size: 18px; font-weight: 700; cursor: pointer;
+    box-shadow: var(--shadow); transition: all 0.2s; font-family: var(--font);
+  }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-2px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .dice-hint { margin-top: 14px; font-size: 13px; color: var(--c-muted); }
+
+  /* 卡牌弹窗 */
+  .card-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex;
+    align-items: center; justify-content: center; z-index: 100; opacity: 0;
+    pointer-events: none; transition: opacity 0.3s;
+  }
+  .card-overlay.show { opacity: 1; pointer-events: auto; }
+  .card-box {
+    background: var(--c-card); border-radius: var(--radius); width: 85%; max-width: 400px;
+    padding: 36px 28px; text-align: center; box-shadow: var(--shadow);
+    transform: rotateY(90deg) scale(0.8); transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .card-overlay.show .card-box { transform: rotateY(0) scale(1); }
+  .card-type {
+    font-size: 14px; color: #fff; padding: 4px 16px; border-radius: 20px;
+    margin: 0 auto 20px; display: inline-block; font-weight: 600;
+  }
+  .card-type.task { background: #ff6b9d; }
+  .card-type.truth { background: #4ecdc4; }
+  .card-type.punishment { background: #f5576c; }
+  .card-type.bonus { background: #ffd93d; color: #333; }
+  .card-content { font-size: 20px; line-height: 1.6; font-weight: 500; margin-bottom: 28px; min-height: 80px; }
+  .card-actions { display: flex; gap: 12px; justify-content: center; }
+  .card-actions button {
+    padding: 10px 28px; border-radius: 12px; border: none; font-size: 15px;
+    font-weight: 600; cursor: pointer; font-family: var(--font); transition: all 0.2s;
+  }
+  .btn-done { background: var(--c-primary); color: #fff; }
+  .btn-skip { background: transparent; color: var(--c-muted); border: 1px solid var(--c-border) !important; }
+  .card-points { margin-top: 16px; font-size: 13px; color: var(--c-muted); }
+
+  /* 连击特效 */
+  .combo-fx {
+    position: fixed; top: 35%; left: 50%; transform: translate(-50%,-50%);
+    font-size: 48px; font-weight: 900; color: var(--c-secondary);
+    text-shadow: 0 0 30px var(--c-primary); z-index: 200; pointer-events: none;
+    opacity: 0; transition: all 0.5s;
+  }
+  .combo-fx.show { opacity: 1; animation: comboBounce 1s ease; }
+  @keyframes comboBounce {
+    0% { transform: translate(-50%,-50%) scale(0.5); opacity: 0; }
+    30% { transform: translate(-50%,-50%) scale(1.3); opacity: 1; }
+    70% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%,-50%) scale(1.5); opacity: 0; }
+  }
+
+  /* 结算 */
+  .result-screen {
+    text-align: center; padding: 40px 20px;
+  }
+  .result-title { font-size: 28px; font-weight: 800; color: var(--c-primary); margin-bottom: 24px; }
+  .result-scores {
+    display: flex; gap: 20px; justify-content: center; margin-bottom: 28px;
+  }
+  .result-player {
+    background: var(--c-card); border-radius: var(--radius); padding: 24px 20px;
+    min-width: 140px; box-shadow: var(--shadow);
+  }
+  .result-player.winner { border: 3px solid var(--c-primary); }
+  .result-player .crown { font-size: 32px; margin-bottom: 8px; }
+  .result-player .nick { font-size: 15px; margin-bottom: 8px; color: var(--c-muted); }
+  .result-player .score { font-size: 36px; font-weight: 800; color: var(--c-primary); }
+  .result-summary { font-size: 16px; line-height: 1.8; margin-bottom: 28px; color: var(--c-text); }
+  .result-actions { display: flex; gap: 12px; justify-content: center; }
+
+  /* ===== 大转盘 ===== */
+  .wheel-container { text-align: center; padding: 30px 0; }
+  .wheel-wrapper { position: relative; width: 300px; height: 300px; margin: 0 auto 24px; }
+  .wheel {
+    width: 100%; height: 100%; border-radius: 50%; position: relative;
+    border: 6px solid var(--c-card); box-shadow: var(--shadow);
+    transition: transform 4s cubic-bezier(0.17,0.67,0.12,0.99);
+  }
+  .wheel-pointer {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent;
+    border-top: 24px solid var(--c-primary); z-index: 10;
+  }
+  .wheel-center {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 60px; height: 60px; border-radius: 50%; background: var(--c-card);
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+    box-shadow: var(--shadow); z-index: 5;
+  }
+
+  /* ===== 默契问答 ===== */
+  .quiz-area { text-align: center; padding: 20px 0; }
+  .quiz-progress { font-size: 14px; color: var(--c-muted); margin-bottom: 16px; }
+  .quiz-question {
+    background: var(--c-card); border-radius: var(--radius); padding: 28px 24px;
+    box-shadow: var(--shadow); margin-bottom: 20px;
+  }
+  .quiz-question .who { font-size: 14px; color: var(--c-primary); font-weight: 600; margin-bottom: 8px; }
+  .quiz-question .text { font-size: 20px; line-height: 1.5; }
+  .quiz-input {
+    width: 85%; max-width: 400px; padding: 14px 18px; border: 2px solid var(--c-border);
+    border-radius: 14px; font-size: 16px; font-family: var(--font); background: var(--c-card);
+    color: var(--c-text); margin-bottom: 16px;
+  }
+  .quiz-input:focus { outline: none; border-color: var(--c-primary); }
+  .quiz-result {
+    padding: 20px; border-radius: var(--radius); margin-bottom: 16px;
+  }
+  .quiz-result.match { background: rgba(78,205,196,0.2); }
+  .quiz-result.miss { background: rgba(245,87,108,0.2); }
+  .quiz-result .title { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .quiz-result.match .title { color: #4ecdc4; }
+  .quiz-result.miss .title { color: #f5576c; }
+  .quiz-result .detail { font-size: 14px; color: var(--c-muted); }
+
+  /* 状态面板 */
+  .state-panel {
+    position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7);
+    color: #0f0; padding: 10px 14px; border-radius: 8px; font-size: 11px;
+    font-family: monospace; max-width: 300px; max-height: 200px; overflow-y: auto;
+    z-index: 50; opacity: 0.3;
+  }
+  .state-panel:hover { opacity: 1; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>💖 心动回合战</h1>
+  <div class="topbar-right">
+    <button class="btn-sm" onclick="switchTheme('sweet')">甜蜜粉嫩</button>
+    <button class="btn-sm" onclick="switchTheme('midnight')">深夜浪漫</button>
+    <button class="btn-sm" onclick="switchTheme('rainbow')">活力多彩</button>
+  </div>
+</div>
+
+<!-- ===== 首页 ===== -->
+<div id="home" class="home">
+  <div class="home-title">心动回合战</div>
+  <div class="home-sub">专属情侣的亲密互动游戏 · 多种玩法等你解锁</div>
+  <div class="mode-grid" id="modeGrid"></div>
+</div>
+
+<!-- ===== 游戏页 ===== -->
+<div id="game" class="game hidden"></div>
+
+<!-- 卡牌弹窗 -->
+<div id="cardOverlay" class="card-overlay">
+  <div class="card-box" id="cardBox"></div>
+</div>
+
+<!-- 连击特效 -->
+<div id="comboFx" class="combo-fx">COMBO x3 🔥</div>
+
+<!-- 状态面板 -->
+<div class="state-panel" id="statePanel"></div>
+
+<script>
+// ===== 卡牌数据（原型简化版） =====
+const cards = {
+  task: [
+    { id:'t1', content:'给对方一个额吻，坚持10秒', level:'hot' },
+    { id:'t2', content:'用最温柔的方式壁咚对方，说一句情话', level:'hot' },
+    { id:'t3', content:'互相拥抱30秒，不许说话', level:'sweet' },
+    { id:'t4', content:'模仿对方的撒娇语气说"人家想要抱抱嘛"', level:'sweet' },
+    { id:'t5', content:'蒙上对方的眼睛，用嘴唇触碰TA的脸颊', level:'hot' },
+    { id:'t6', content:'在对方耳边说一句最让你心动的话', level:'wild' },
+  ],
+  truth: [
+    { id:'tr1', content:'第一次心动是什么时候？描述那个瞬间', level:'sweet' },
+    { id:'tr2', content:'你最想和对方一起做的浪漫事情是什么？', level:'hot' },
+    { id:'tr3', content:'对方哪个小动作最让你心动？', level:'hot' },
+    { id:'tr4', content:'你最想对方对你做的一件事是什么？', level:'wild' },
+    { id:'tr5', content:'你觉得对方最好看的时候是什么时候？', level:'sweet' },
+  ],
+  punishment: [
+    { id:'p1', content:'学猫叫三声，越撒娇越好', level:'hot' },
+    { id:'p2', content:'做一个鬼脸让对方笑出来', level:'sweet' },
+    { id:'p3', content:'被对方挠痒痒10秒，不许躲', level:'hot' },
+    { id:'p4', content:'深情对视30秒，先笑的人要亲对方一下', level:'hot' },
+  ],
+  bonus: [
+    { id:'b1', content:'获得一次"心愿券"，可随时要求对方做一件事', level:'wild' },
+    { id:'b2', content:'对方要给你一个持续15秒的深吻', level:'wild' },
+    { id:'b3', content:'获得"女王/国王"待遇5分钟，对方有求必应', level:'wild' },
+  ]
+};
+
+const typeNames = { task:'任务卡', truth:'真心话', punishment:'惩罚卡', bonus:'奖励卡' };
+const typePoints = { task:10, truth:8, punishment:12, bonus:15 };
+const diceMap = { 1:'task', 2:'task', 3:'truth', 4:'truth', 5:'punishment', 6:'bonus' };
+const typeEmojis = { task:'💋', truth:'💬', punishment:'🔥', bonus:'🎁' };
+
+// 转盘事件
+const wheelEvents = [
+  { type:'kiss', label:'亲吻', desc:'给对方一个甜甜的吻', color:'#ff6b9d' },
+  { type:'hug', label:'拥抱', desc:'紧紧拥抱对方30秒', color:'#ffd93d' },
+  { type:'pin', label:'壁咚', desc:'壁咚对方，深情对视5秒', color:'#f5576c' },
+  { type:'hint', label:'撒娇', desc:'用撒娇的语气说"我喜欢你"', color:'#4ecdc4' },
+  { type:'quiz', label:'提问', desc:'问对方一个最想问的问题', color:'#667eea' },
+  { type:'punish', label:'小惩罚', desc:'学猫叫三声', color:'#f093fb' },
+  { type:'bonus', label:'奖励', desc:'获得一个深吻', color:'#fa709a' },
+  { type:'respin', label:'再转一次', desc:'', color:'#c44b6e' },
+];
+
+// 默契问答
+const quizQuestions = [
+  { id:'q1', q:'TA最喜欢的食物是什么？' },
+  { id:'q2', q:'TA最想去旅行的地方是哪里？' },
+  { id:'q3', q:'TA最喜欢你身上的哪个优点？' },
+  { id:'q4', q:'TA最讨厌你做的什么事？' },
+  { id:'q5', q:'TA的理想约会是什么样的？' },
+];
+
+// ===== 游戏状态 =====
+let state = {
+  mode: null,        // 'heartbeat' | 'wheel' | 'quiz'
+  players: [
+    { id:'p1', nick:'TA', score:0, combo:0 },
+    { id:'p2', nick:'宝贝', score:0, combo:0 },
+  ],
+  currentIdx: 0,
+  turnCount: 0,
+  maxTurns: 10,      // 每人5回合 = 10次操作
+  history: [],       // 抽卡历史
+  // 转盘
+  wheelRotation: 0,
+  wheelSpinning: false,
+  // 问答
+  quizIdx: 0,
+  quizAnswers: {},
+  quizMaxRounds: 5,
+};
+
+// ===== 工具函数 =====
+function $(id) { return document.getElementById(id); }
+function show(el) { el.classList.remove('hidden'); }
+function hide(el) { el.classList.add('hidden'); }
+function updateState() {
+  $('statePanel').innerHTML = JSON.stringify(state, null, 2).replace(/\n/g,'<br>').replace(/ /g,'&nbsp;');
+}
+function switchTheme(name) {
+  document.documentElement.dataset.theme = name;
+  document.querySelectorAll('.topbar .btn-sm').forEach(b => {
+    b.classList.toggle('active', b.textContent.includes(
+      name==='sweet'?'甜蜜':name==='midnight'?'深夜':'活力'
+    ));
+  });
+}
+
+// ===== 首页 =====
+function renderHome() {
+  show($('home')); hide($('game'));
+  const modes = [
+    { id:'heartbeat', icon:'🎲', name:'心动回合战', desc:'掷骰子决定命运，挑战升温感情' },
+    { id:'wheel',     icon:'🎡', name:'命运大转盘', desc:'转出随机惊喜，亲密互动不断' },
+    { id:'quiz',      icon:'❤️', name:'默契问答',   desc:'心有灵犀大考验，答错有小惩罚' },
+  ];
+  $('modeGrid').innerHTML = modes.map(m => `
+    <div class="mode-card" onclick="startGame('${m.id}')">
+      <span class="icon">${m.icon}</span>
+      <div class="name">${m.name}</div>
+      <div class="desc">${m.desc}</div>
+    </div>`).join('');
+  updateState();
+}
+
+// ===== 开始游戏 =====
+function startGame(mode) {
+  state.mode = mode;
+  state.players = [
+    { id:'p1', nick:'TA', score:0, combo:0 },
+    { id:'p2', nick:'宝贝', score:0, combo:0 },
+  ];
+  state.currentIdx = 0;
+  state.turnCount = 0;
+  state.history = [];
+  state.wheelRotation = 0;
+  state.wheelSpinning = false;
+  state.quizIdx = 0;
+  state.quizAnswers = {};
+  hide($('home')); show($('game'));
+  if (mode === 'heartbeat') renderHeartbeat();
+  else if (mode === 'wheel') renderWheel();
+  else if (mode === 'quiz') renderQuiz();
+  updateState();
+}
+
+// ===== 心动回合战 =====
+function renderHeartbeat() {
+  const p = state.players[state.currentIdx];
+  $('game').innerHTML = `
+    <div class="game-header">
+      <button class="btn-back" onclick="renderHome()">←</button>
+      <span class="mode-name">🎲 心动回合战</span>
+      <span class="turn-info">回合 ${Math.min(state.turnCount+1, state.maxTurns)}/${state.maxTurns}</span>
+    </div>
+    <div class="players">
+      ${state.players.map((pl, i) => `
+        <div class="player-card ${i===state.currentIdx?'active':''}">
+          <div class="emoji">${i===0?'🧑':'💕'}</div>
+          <div class="nick">${pl.nick}</div>
+          <div class="score">${pl.score}</div>
+          <div class="combo-badge ${pl.combo>=2?'show':''}">连击 ${pl.combo}🔥</div>
+        </div>`).join('')}
+    </div>
+    <div class="dice-area">
+      <div class="dice" id="dice">?</div>
+      <button class="btn-primary" id="rollBtn" onclick="rollDice()">掷骰子</button>
+      <div class="dice-hint">点数 1-2任务 · 3-4真心话 · 5惩罚 · 6奖励</div>
+    </div>`;
+  updateState();
+}
+
+function rollDice() {
+  const btn = $('rollBtn'); if (btn) btn.disabled = true;
+  const dice = $('dice');
+  dice.classList.add('rolling');
+  let count = 0;
+  const interval = setInterval(() => {
+    dice.textContent = ['⚀','⚁','⚂','⚃','⚄','⚅'][Math.floor(Math.random()*6)];
+    count++;
+    if (count > 8) {
+      clearInterval(interval);
+      dice.classList.remove('rolling');
+      const result = Math.floor(Math.random()*6) + 1;
+      dice.textContent = ['⚀','⚁','⚂','⚃','⚄','⚅'][result-1];
+      setTimeout(() => drawCard(result), 400);
+    }
+  }, 80);
+}
+
+function drawCard(diceNum) {
+  const type = diceMap[diceNum];
+  const pool = cards[type].filter(c => !state.history.includes(c.id));
+  const lib = pool.length > 0 ? pool : cards[type];
+  const card = lib[Math.floor(Math.random()*lib.length)];
+  state.history.push(card.id);
+  if (state.history.length > 10) state.history.shift();
+
+  $('cardBox').innerHTML = `
+    <span class="card-type ${type}">${typeEmojis[type]} ${typeNames[type]}</span>
+    <div class="card-content">${card.content}</div>
+    <div class="card-actions">
+      <button class="btn-done" onclick="completeCard('${type}')">完成 (+${typePoints[type]})</button>
+      <button class="btn-skip" onclick="skipCard()">跳过</button>
+    </div>
+    <div class="card-points">完成获得 ${typePoints[type]} 心动值 · 跳过将清零连击</div>`;
+  $('cardOverlay').classList.add('show');
+  updateState();
+}
+
+function completeCard(type) {
+  const p = state.players[state.currentIdx];
+  p.score += typePoints[type];
+  p.combo++;
+  if (p.combo >= 3) {
+    p.score += 5;
+    p.combo = 0;
+    showComboFX();
+  }
+  closeCard();
+  nextTurn();
+}
+
+function skipCard() {
+  state.players[state.currentIdx].combo = 0;
+  closeCard();
+  nextTurn();
+}
+
+function closeCard() {
+  $('cardOverlay').classList.remove('show');
+}
+
+function showComboFX() {
+  const fx = $('comboFx');
+  fx.classList.add('show');
+  setTimeout(() => fx.classList.remove('show'), 1000);
+}
+
+function nextTurn() {
+  state.turnCount++;
+  if (state.turnCount >= state.maxTurns) {
+    finishGame();
+    return;
+  }
+  state.currentIdx = 1 - state.currentIdx;
+  renderHeartbeat();
+}
+
+function finishGame() {
+  const [p1, p2] = state.players;
+  const winner = p1.score >= p2.score ? p1 : p2;
+  const loser = winner === p1 ? p2 : p1;
+  const diff = Math.abs(p1.score - p2.score);
+  let summary;
+  if (diff === 0) summary = '势均力敌的两个人，每一分都是甜蜜的碰撞！';
+  else if (diff <= 5) summary = `${winner.nick}险胜！你们的默契只差一点点 💕`;
+  else if (diff <= 15) summary = `${winner.nick}完胜！但${loser.nick}的心也被赢走了 🥰`;
+  else summary = `${winner.nick}大获全胜！看来今晚${loser.nick}要好好服侍了 😏`;
+
+  $('game').innerHTML = `
+    <div class="game-header">
+      <button class="btn-back" onclick="renderHome()">←</button>
+      <span class="mode-name">游戏结束</span>
+      <span></span>
+    </div>
+    <div class="result-screen">
+      <div class="result-title">💖 心动结算 💖</div>
+      <div class="result-scores">
+        ${state.players.map(pl => `
+          <div class="result-player ${pl===winner?'winner':''}">
+            <div class="crown">${pl===winner?'👑':''}</div>
+            <div class="nick">${pl.nick}</div>
+            <div class="score">${pl.score}</div>
+          </div>`).join('')}
+      </div>
+      <div class="result-summary">${summary}</div>
+      <div class="result-actions">
+        <button class="btn-primary" onclick="startGame('heartbeat')">再来一局</button>
+        <button class="btn-sm" onclick="renderHome()">返回首页</button>
+      </div>
+    </div>`;
+  updateState();
+}
+
+// ===== 命运大转盘 =====
+function renderWheel() {
+  const shuffled = [...wheelEvents].sort(() => Math.random()-0.5);
+  state.wheelEvents = shuffled;
+  const segAngle = 360 / shuffled.length;
+  const colors = shuffled.map((e, i) =>
+    `${e.color} ${i*segAngle}deg ${(i+1)*segAngle}deg`
+  ).join(', ');
+
+  $('game').innerHTML = `
+    <div class="game-header">
+      <button class="btn-back" onclick="renderHome()">←</button>
+      <span class="mode-name">🎡 命运大转盘</span>
+      <span></span>
+    </div>
+    <div class="wheel-container">
+      <div class="wheel-wrapper">
+        <div class="wheel-pointer"></div>
+        <div class="wheel" id="wheel" style="background: conic-gradient(${colors})">
+          ${shuffled.map((e, i) => {
+            const angle = i * segAngle + segAngle/2;
+            const rad = (angle - 90) * Math.PI / 180;
+            const x = 42 + 35 * Math.cos(rad);
+            const y = 42 + 35 * Math.sin(rad);
+            return `<span style="position:absolute;left:${x}%;top:${y}%;transform:translate(-50%,-50%);font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5);">${e.label}</span>`;
+          }).join('')}
+          <div class="wheel-center">💖</div>
+        </div>
+      </div>
+      <button class="btn-primary" id="spinBtn" onclick="spinWheel()">转动转盘</button>
+    </div>`;
+  updateState();
+}
+
+function spinWheel() {
+  const btn = $('spinBtn'); if (btn) btn.disabled = true;
+  const wheel = $('wheel');
+  const segCount = state.wheelEvents.length;
+  const segAngle = 360 / segCount;
+  const targetIdx = Math.floor(Math.random() * segCount);
+  const targetAngle = -(targetIdx * segAngle + segAngle/2);
+  state.wheelRotation += 360 * 5 + (targetAngle - state.wheelRotation % 360);
+  wheel.style.transform = `rotate(${state.wheelRotation}deg)`;
+  setTimeout(() => {
+    const event = state.wheelEvents[targetIdx];
+    if (event.type === 'respin') {
+      btn.disabled = false;
+      return;
+    }
+    $('cardBox').innerHTML = `
+      <span class="card-type task">🎡 ${event.label}</span>
+      <div class="card-content">${event.desc}</div>
+      <div class="card-actions">
+        <button class="btn-done" onclick="closeCard();$('spinBtn').disabled=false;">完成</button>
+      </div>`;
+    $('cardOverlay').classList.add('show');
+    updateState();
+  }, 4200);
+}
+
+// ===== 默契问答 =====
+function renderQuiz() {
+  state.quizIdx = 0;
+  state.quizAnswers = {};
+  state.players.forEach(p => { p.score = 0; });
+  renderQuizQuestion('p1');
+  updateState();
+}
+
+function renderQuizQuestion(who) {
+  const q = quizQuestions[state.quizIdx];
+  $('game').innerHTML = `
+    <div class="game-header">
+      <button class="btn-back" onclick="renderHome()">←</button>
+      <span class="mode-name">❤️ 默契问答</span>
+      <span class="turn-info">第${state.quizIdx+1}/${quizQuestions.length}题</span>
+    </div>
+    <div class="quiz-area">
+      <div class="quiz-progress">轮流回答同一道题，测试你们的默契</div>
+      <div class="quiz-question">
+        <div class="who">${who==='p1'?'🧑 '+state.players[0].nick:'💕 '+state.players[1].nick} 回答</div>
+        <div class="text">${q.q}</div>
+      </div>
+      <input type="text" class="quiz-input" id="quizInput" placeholder="输入你的答案..." autofocus>
+      <br>
+      <button class="btn-primary" onclick="submitQuizAnswer('${who}')">提交</button>
+    </div>`;
+  $('quizInput').focus();
+  $('quizInput').addEventListener('keydown', e => { if(e.key==='Enter') submitQuizAnswer(who); });
+  updateState();
+}
+
+function submitQuizAnswer(who) {
+  const input = $('quizInput');
+  const answer = input.value.trim();
+  if (!answer) return;
+  state.quizAnswers[who] = answer;
+  if (who === 'p1') {
+    renderQuizQuestion('p2');
+  } else {
+    checkQuizMatch();
+  }
+  updateState();
+}
+
+function checkQuizMatch() {
+  const a1 = state.quizAnswers.p1.toLowerCase().trim();
+  const a2 = state.quizAnswers.p2.toLowerCase().trim();
+  const matched = a1 === a2;
+
+  if (matched) {
+    state.players[0].score += 10;
+    state.players[1].score += 10;
+  }
+
+  $('game').innerHTML = `
+    <div class="game-header">
+      <button class="btn-back" onclick="renderHome()">←</button>
+      <span class="mode-name">❤️ 默契问答</span>
+      <span class="turn-info">第${state.quizIdx+1}题结果</span>
+    </div>
+    <div class="quiz-area">
+      <div class="quiz-result ${matched?'match':'miss'}">
+        <div class="title">${matched?'💕 心有灵犀！':'😅 默契不足'}</div>
+        <div class="detail">
+          ${state.players[0].nick}: ${state.quizAnswers.p1}<br>
+          ${state.players[1].nick}: ${state.quizAnswers.p2}<br>
+          ${matched?'双方各+10分':'触发一张惩罚卡作为小惩罚~'}
+        </div>
+      </div>
+      ${!matched ? `
+        <div class="quiz-question">
+          <span class="card-type punishment">🔥 惩罚卡</span>
+          <div class="card-content" style="font-size:18px;margin:16px 0;">
+            ${cards.punishment[Math.floor(Math.random()*cards.punishment.length)].content}
+          </div>
+        </div>` : ''}
+      <button class="btn-primary" onclick="nextQuiz()">${state.quizIdx+1>=quizQuestions.length?'查看结果':'下一题'}</button>
+    </div>`;
+  updateState();
+}
+
+function nextQuiz() {
+  state.quizIdx++;
+  if (state.quizIdx >= quizQuestions.length) {
+    finishQuiz();
+  } else {
+    renderQuizQuestion('p1');
+  }
+  updateState();
+}
+
+function finishQuiz() {
+  const [p1, p2] = state.players;
+  const totalPossible = quizQuestions.length * 20;
+  const actual = p1.score + p2.score;
+  const pct = Math.round(actual / totalPossible * 100);
+  let level;
+  if (pct >= 80) level = '心有灵犀一点通！你们是天作之合 💞';
+  else if (pct >= 50) level = '还需要更多了解彼此，继续加油！💕';
+  else if (pct >= 25) level = '多花点时间相处吧，每一段感情都值得用心经营 🌹';
+  else level = '没关系，爱不在于了解多少，而在于愿意一直了解下去 😊';
+
+  $('game').innerHTML = `
+    <div class="game-header">
+      <button class="btn-back" onclick="renderHome()">←</button>
+      <span class="mode-name">❤️ 默契问答</span>
+      <span></span>
+    </div>
+    <div class="result-screen">
+      <div class="result-title">💕 默契度结算 💕</div>
+      <div class="result-scores">
+        ${state.players.map(pl => `
+          <div class="result-player">
+            <div class="crown">❤️</div>
+            <div class="nick">${pl.nick}</div>
+            <div class="score">${pl.score}</div>
+          </div>`).join('')}
+      </div>
+      <div class="result-summary" style="font-size:22px;font-weight:800;color:var(--c-primary);">${pct}% 默契度</div>
+      <div class="result-summary">${level}</div>
+      <div class="result-actions">
+        <button class="btn-primary" onclick="startGame('quiz')">再来一局</button>
+        <button class="btn-sm" onclick="renderHome()">返回首页</button>
+      </div>
+    </div>`;
+  updateState();
+}
+
+// ===== 初始化 =====
+renderHome();
+switchTheme('sweet');
+</script>
+</body>
+</html>
