@@ -40,9 +40,9 @@ function goTo(id) { router.push(`/game/${id}`) }
 .topbar-right { display: flex; gap: 10px; }
 .btn-sm { padding: 6px 14px; border: 1px solid var(--c-border); border-radius: 10px; background: transparent; color: var(--c-text); cursor: pointer; font-size: 13px; transition: all 0.2s; }
 .btn-sm:hover { background: var(--c-primary); color: #fff; border-color: var(--c-primary); }
-.home-body { max-width: 600px; margin: 0 auto; padding: 40px 20px; text-align: center; }
-.home-title { font-size: 32px; font-weight: 800; color: var(--c-primary); margin-bottom: 8px; }
-.home-sub { font-size: 15px; color: var(--c-muted); margin-bottom: 36px; }
-.mode-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.footer-hint { margin-top: 40px; font-size: 13px; color: var(--c-muted); }
+.home-body { max-width: 600px; margin: 0 auto; padding: 24px 20px 16px; text-align: center; }
+.home-title { font-size: 28px; font-weight: 800; color: var(--c-primary); margin-bottom: 6px; }
+.home-sub { font-size: 14px; color: var(--c-muted); margin-bottom: 24px; }
+.mode-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.footer-hint { margin-top: 24px; font-size: 13px; color: var(--c-muted); }
 </style>

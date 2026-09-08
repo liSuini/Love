@@ -163,9 +163,9 @@ function nextTurn() {
 </script>
 
 <style scoped>
-.heartbeat { padding: 16px 20px; }
-.players { display: flex; gap: 12px; margin-bottom: 24px; }
-.dice-area { text-align: center; padding: 30px 0; }
+.heartbeat { padding: 16px 20px; display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+.players { display: flex; gap: 12px; margin-bottom: 20px; flex-shrink: 0; }
+.dice-area { text-align: center; padding: 20px 0; flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .dice {
   width: 80px; height: 80px; background: var(--c-card); border-radius: 16px;
   display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;

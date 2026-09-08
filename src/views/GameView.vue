@@ -21,7 +21,8 @@ const asyncComponent = computed(() => {
 </script>
 
 <style scoped>
-.game { padding: 0; max-width: 600px; margin: 0 auto; min-height: 100vh; }
+.game { padding: 0; max-width: 600px; margin: 0 auto; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
+.game > * { flex-shrink: 0; }
 .not-found { text-align: center; padding: 60px; }
 .not-found p { font-size: 18px; margin-bottom: 20px; color: var(--c-muted); }
 .not-found button { padding: 12px 28px; border-radius: 14px; border: none; background: var(--c-primary); color: #fff; font-size: 16px; cursor: pointer; }

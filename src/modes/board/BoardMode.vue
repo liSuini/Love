@@ -393,12 +393,12 @@ function showTileInfo(tile) {
 </script>
 
 <style scoped>
-.board-mode { padding: 16px 20px; }
-.players { display: flex; gap: 12px; margin-bottom: 20px; }
+.board-mode { padding: 16px 20px; display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+.players { display: flex; gap: 12px; margin-bottom: 16px; flex-shrink: 0; }
 
-.board-wrapper { margin-bottom: 24px; }
+.board-wrapper { margin-bottom: 0; flex: 1; display: flex; align-items: center; }
 .board {
-  max-width: 500px; margin: 0 auto;
+  max-width: 500px; margin: 0 auto; width: 100%;
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
 }
 .tile {
@@ -422,7 +422,7 @@ function showTileInfo(tile) {
 .tile.has-p1 { box-shadow: 0 0 15px rgba(255,107,157,0.5); }
 .tile.has-p2 { box-shadow: 0 0 15px rgba(78,205,196,0.5); }
 
-.dice-area { text-align: center; padding: 20px 0; }
+.dice-area { text-align: center; padding: 16px 0; flex-shrink: 0; }
 .dice {
   width: 70px; height: 70px; background: var(--c-card); border-radius: 14px;
   display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;

@@ -158,9 +158,9 @@ function restart() {
 </script>
 
 <style scoped>
-.quiz-mode { padding: 16px 20px; }
-.players { display: flex; gap: 12px; margin-bottom: 24px; }
-.quiz-area { text-align: center; padding: 20px 0; }
+.quiz-mode { padding: 16px 20px; display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+.players { display: flex; gap: 12px; margin-bottom: 20px; flex-shrink: 0; }
+.quiz-area { text-align: center; padding: 16px 0; flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .quiz-progress { font-size: 14px; color: var(--c-muted); margin-bottom: 24px; }
 .quiz-question {
   background: var(--c-card); border-radius: var(--radius); padding: 28px 24px;

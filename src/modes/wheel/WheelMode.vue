@@ -98,8 +98,8 @@ function closeCard() {
 </script>
 
 <style scoped>
-.wheel-mode { padding: 16px 20px; }
-.wheel-container { text-align: center; padding: 40px 0; }
+.wheel-mode { padding: 16px 20px; display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+.wheel-container { text-align: center; padding: 16px 0; flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .wheel-wrapper { position: relative; width: 280px; height: 280px; margin: 0 auto 30px; }
 .wheel-pointer {
   position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
