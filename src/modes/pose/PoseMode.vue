@@ -43,6 +43,9 @@
           <div class="pose-name">{{ currentPose.name }}</div>
           <div class="pose-desc">{{ currentPose.description }}</div>
 
+          <!-- SVG 示意图 -->
+          <div class="pose-diagram" v-html="_getPoseSvg(currentPose.id)"></div>
+
           <!-- 教学步骤 -->
           <div class="pose-section">
             <div class="section-title">📋 动作步骤</div>
@@ -102,6 +105,7 @@ import { useGameSession } from '../../composables/useGameSession'
 import { useAudio } from '../../composables/useAudio'
 import { CardLibrary } from '../../services/CardLibrary'
 import poseData from '../../data/poses.json'
+import { getPoseSvg } from '../../data/poseSvgs.js'
 import ScoreBoard from '../../components/ScoreBoard.vue'
 import luluImg from '../../assets/avatars/lulu.jpg'
 import lumeiImg from '../../assets/avatars/lumei.jpg'
@@ -124,6 +128,9 @@ const combo = ref(0)
 
 const currentPlayer = computed(() => session.players[session.currentPlayerIdx])
 const progressPercent = computed(() => Math.min(100, (sharedScore.value / TARGET_SCORE) * 100))
+
+// 暴露给模板
+const _getPoseSvg = getPoseSvg
 
 const resultSummary = computed(() => {
   const r = round.value
@@ -253,7 +260,16 @@ function endTurn() {
 .diff-badge { background: rgba(255,217,61,0.2); color: #b8860b; }
 
 .pose-name { font-size: 22px; font-weight: 800; color: var(--c-primary); margin-bottom: 6px; }
-.pose-desc { font-size: 13px; color: var(--c-muted); margin-bottom: 16px; line-height: 1.5; }
+.pose-desc { font-size: 13px; color: var(--c-muted); margin-bottom: 12px; line-height: 1.5; }
+
+/* SVG 示意图 */
+.pose-diagram {
+  background: linear-gradient(180deg, #f8f9ff 0%, #fff5f7 100%);
+  border-radius: 12px; padding: 8px; margin-bottom: 14px;
+  display: flex; justify-content: center; align-items: center;
+  border: 1px dashed rgba(0,0,0,0.08);
+}
+.pose-diagram :deep(svg) { width: 100%; max-width: 220px; height: auto; }
 
 .pose-section { margin-bottom: 14px; }
 .section-title { font-size: 13px; font-weight: 700; color: var(--c-text); margin-bottom: 6px; }
