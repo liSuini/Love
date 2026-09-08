@@ -1,7 +1,7 @@
 <template>
   <div class="game">
-    <component v-if="mode" :is="mode.component" />
-    <div v-else class="not-found">
+    <component v-if="asyncComponent" :is="asyncComponent" />
+    <div v-else-if="!mode" class="not-found">
       <p>玩法不存在</p>
       <button @click="$router.push('/')">返回首页</button>
     </div>
@@ -9,11 +9,15 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, defineAsyncComponent, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getMode } from '../modes/registry'
 const route = useRoute()
 const mode = computed(() => getMode(route.params.modeId))
+const asyncComponent = computed(() => {
+  if (!mode.value) return null
+  return defineAsyncComponent(mode.value.component)
+})
 </script>
 
 <style scoped>
