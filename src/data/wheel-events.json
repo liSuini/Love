@@ -1,0 +1,10 @@
+[
+  {"id":"wheel-1","eventType":"kiss","label":"亲吻","color":"#ff6b9d","description":"给对方一个甜甜的吻"},
+  {"id":"wheel-2","eventType":"hug","label":"拥抱","color":"#4ecdc4","description":"紧紧拥抱30秒不松手"},
+  {"id":"wheel-3","eventType":"pin","label":"壁咚","color":"#ffe66d","description":"把对方壁咚并深情对视"},
+  {"id":"wheel-4","eventType":"hint","label":"暗示","color":"#a8e6cf","description":"在TA耳边说一句最撩的话"},
+  {"id":"wheel-5","eventType":"quiz","label":"问答","color":"#c9a0dc","description":"对方出一道真心话你来回答"},
+  {"id":"wheel-6","eventType":"punish","label":"惩罚","color":"#ff8c66","description":"接受一个趣味小惩罚"},
+  {"id":"wheel-7","eventType":"bonus","label":"奖励","color":"#ffd700","description":"获得一张亲密奖励卡"},
+  {"id":"wheel-8","eventType":"respin","label":"重转","color":"#87ceeb","description":""}
+]
