@@ -46,6 +46,9 @@
         <div class="card-actions" v-else-if="currentEventType === 'event'">
           <button class="btn-done" @click="resolveEvent">接受命运</button>
         </div>
+        <div class="card-actions" v-else-if="currentEventType === 'rest'">
+          <button class="btn-done" @click="resolveRest">继续</button>
+        </div>
         <div class="card-actions" v-else>
           <button class="btn-done" @click="cardVisible = false">继续</button>
         </div>
@@ -211,7 +214,7 @@ function triggerTile(tile) {
       break
     case 'rest':
       addScore(currentPlayer.value.id, 5)
-      currentEventType.value = null
+      currentEventType.value = 'rest'
       currentCard.value = null
       currentEventDesc.value = '休息片刻，恢复体力，甜蜜值 +5'
       cardVisible.value = true
@@ -342,6 +345,18 @@ function resolveEvent() {
       return
   }
 
+  cardVisible.value = false
+  waiting.value = false
+  currentEventType.value = null
+
+  if (session.players[0].score >= TARGET_SCORE || session.players[1].score >= TARGET_SCORE) {
+    finishGame({})
+    return
+  }
+  endTurn()
+}
+
+function resolveRest() {
   cardVisible.value = false
   waiting.value = false
   currentEventType.value = null
