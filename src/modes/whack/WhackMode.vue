@@ -1,71 +1,70 @@
 <template>
   <div class="whack-mode">
-    <ScoreBoard icon="🔨" title="打地鼠竞速" :turnInfo="timeLeft > 0 ? `${timeLeft}s` : '结束'" @back="goHome" />
+    <ScoreBoard icon="🔨" title="打地鼠竞速" :turnInfo="phase === 'running' ? `${timeLeft}s` : (phase === 'switching' ? '换人' : '准备')" @back="goHome" />
 
     <!-- 比分板 -->
     <div class="score-bar">
-      <div class="player-tag" :class="{ active: phase === 'running' }">
+      <div class="player-tag" :class="{ active: currentPlayer === 0 && phase === 'running' }">
         <img :src="luluImg" class="tag-avatar" />
         <span class="tag-name">噜噜</span>
         <span class="tag-score">{{ scores[0] }}</span>
       </div>
       <span class="vs">VS</span>
-      <div class="player-tag" :class="{ active: phase === 'running' }">
+      <div class="player-tag" :class="{ active: currentPlayer === 1 && phase === 'running' }">
         <span class="tag-score">{{ scores[1] }}</span>
         <span class="tag-name">噜妹</span>
         <img :src="lumeiImg" class="tag-avatar" />
       </div>
     </div>
 
-    <!-- 倒计时显示 -->
+    <!-- 倒计时条 -->
     <div class="timer-bar">
       <div class="timer-fill" :style="{ width: timerPercent + '%' }"></div>
-      <span class="timer-text">{{ timeLeft }}s</span>
+      <span class="timer-text">{{ phase === 'running' ? `${timeLeft}s` : '' }}</span>
     </div>
 
-    <!-- 游戏区域 -->
-    <div class="whack-main">
-      <!-- 噜噜的区 -->
-      <div class="whack-zone">
-        <div class="zone-label">
-          <img :src="luluImg" class="zone-avatar" />
-          <span>噜噜</span>
-        </div>
-        <div class="mole-grid">
-          <div
-            v-for="i in 9" :key="'p0-' + i"
-            class="mole-hole"
-            :class="{ up: moles[0][i - 1] >= 0, bonk: moles[0][i - 1] === -1 }"
-            @click="whack(0, i - 1)"
-          >
-            <div class="mole-character" v-if="moles[0][i - 1] >= 0">🐹</div>
-            <div class="bonk-effect" v-if="moles[0][i - 1] === -1">💥</div>
-          </div>
+    <!-- 当前玩家提示 -->
+    <div class="turn-hint" v-if="phase === 'running'">
+      <img :src="currentPlayer === 0 ? luluImg : lumeiImg" class="turn-avatar" />
+      <span>{{ currentPlayer === 0 ? '噜噜' : '噜妹' }} 的回合</span>
+    </div>
+
+    <!-- 换人提示 -->
+    <transition name="fade">
+      <div v-if="phase === 'switching'" class="switch-overlay" @click="startP2">
+        <div class="switch-card" @click.stop>
+          <img :src="lumeiImg" class="switch-avatar" />
+          <div class="switch-text">噜噜打了 {{ scores[0] }} 分</div>
+          <div class="switch-sub">轮到噜妹了！</div>
+          <button class="btn-primary" @click="startP2">开始</button>
         </div>
       </div>
+    </transition>
 
-      <!-- 噜妹的区 -->
+    <!-- 游戏区域（单个棋盘） -->
+    <div class="whack-main">
       <div class="whack-zone">
         <div class="zone-label">
-          <img :src="lumeiImg" class="zone-avatar" />
-          <span>噜妹</span>
+          <img :src="currentPlayer === 0 ? luluImg : lumeiImg" class="zone-avatar" />
+          <span>{{ currentPlayer === 0 ? '噜噜' : '噜妹' }}</span>
+          <span class="zone-char">{{ currentPlayer === 0 ? '🐹' : '🐰' }}</span>
         </div>
         <div class="mole-grid">
           <div
-            v-for="i in 9" :key="'p1-' + i"
+            v-for="i in 9" :key="i"
             class="mole-hole"
-            :class="{ up: moles[1][i - 1] >= 0, bonk: moles[1][i - 1] === -1 }"
-            @click="whack(1, i - 1)"
+            :class="{ up: moles[i - 1] >= 0, bonk: moles[i - 1] === -1, disabled: phase !== 'running' }"
+            @click="whack(i - 1)"
           >
-            <div class="mole-character" v-if="moles[1][i - 1] >= 0">🐰</div>
-            <div class="bonk-effect" v-if="moles[1][i - 1] === -1">💥</div>
+            <div class="mole-character" v-if="moles[i - 1] >= 0">{{ currentPlayer === 0 ? '🐹' : '🐰' }}</div>
+            <div class="bonk-effect" v-if="moles[i - 1] === -1">💥</div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- 操作 -->
-    <div class="actions" v-if="phase !== 'running'">
+    <div class="actions" v-if="phase === 'ready' || phase === 'ended'">
       <button v-if="phase === 'ready' || phase === 'ended'" class="btn-primary" @click="startGame">
         {{ phase === 'ended' ? '再来一局' : '开始游戏' }}
       </button>
@@ -97,93 +96,112 @@ import luluImg from '../../assets/avatars/lulu.jpg'
 import lumeiImg from '../../assets/avatars/lumei.jpg'
 
 const router = useRouter()
-const GAME_TIME = 30
+const TURN_TIME = 15
 const MOLE_UP_MIN = 600
 const MOLE_UP_MAX = 1200
 const SPAWN_MIN = 300
 const SPAWN_MAX = 800
 
-const phase = ref('ready') // ready | running | ended
+const phase = ref('ready') // ready | running | switching | ended
+const currentPlayer = ref(0)
 const scores = ref([0, 0])
-const timeLeft = ref(GAME_TIME)
-const moles = ref([Array(9).fill(-2), Array(9).fill(-2)]) // -2=空, >=0=显示中, -1=被打
+const timeLeft = ref(TURN_TIME)
+const moles = ref(Array(9).fill(-2)) // -2=空, >=0=显示中, -1=被打
 const winner = ref(null)
 
 let gameTimer = null
-let spawnTimers = [null, null]
-let moleTimers = [Array(9).fill(null), Array(9).fill(null)]
+let spawnTimer = null
+let moleTimers = Array(9).fill(null)
 
-const timerPercent = computed(() => (timeLeft.value / GAME_TIME) * 100)
+const timerPercent = computed(() => (timeLeft.value / TURN_TIME) * 100)
 
 function goHome() {
   cleanup()
   router.push('/')
 }
 
+function clearMoles() {
+  moles.value = Array(9).fill(-2)
+  for (let i = 0; i < 9; i++) {
+    if (moleTimers[i]) { clearTimeout(moleTimers[i]); moleTimers[i] = null }
+  }
+}
+
 function startGame() {
   cleanup()
   scores.value = [0, 0]
-  timeLeft.value = GAME_TIME
-  moles.value = [Array(9).fill(-2), Array(9).fill(-2)]
+  currentPlayer.value = 0
+  startTurn()
+}
+
+function startTurn() {
+  clearMoles()
+  timeLeft.value = TURN_TIME
   phase.value = 'running'
-  winner.value = null
+  scheduleSpawn()
 
-  // 发出地鼠
-  scheduleSpawn(0)
-  scheduleSpawn(1)
-
-  // 倒计时
   gameTimer = setInterval(() => {
     timeLeft.value--
     if (timeLeft.value <= 0) {
-      endGame()
+      endTurn()
     }
   }, 1000)
 }
 
-function scheduleSpawn(playerIdx) {
+function endTurn() {
+  cleanup()
+  clearMoles()
+  if (currentPlayer.value === 0) {
+    phase.value = 'switching'
+  } else {
+    endGame()
+  }
+}
+
+function startP2() {
+  currentPlayer.value = 1
+  startTurn()
+}
+
+function scheduleSpawn() {
   if (phase.value !== 'running') return
   const delay = Math.random() * (SPAWN_MAX - SPAWN_MIN) + SPAWN_MIN
-  spawnTimers[playerIdx] = setTimeout(() => {
+  spawnTimer = setTimeout(() => {
     if (phase.value !== 'running') return
-    // 找空穴
     const empty = []
     for (let i = 0; i < 9; i++) {
-      if (moles.value[playerIdx][i] === -2) empty.push(i)
+      if (moles.value[i] === -2) empty.push(i)
     }
     if (empty.length > 0) {
       const idx = empty[Math.floor(Math.random() * empty.length)]
-      moles.value[playerIdx][idx] = Date.now()
+      moles.value[idx] = Date.now()
 
-      // 自动消失
       const upTime = Math.random() * (MOLE_UP_MAX - MOLE_UP_MIN) + MOLE_UP_MIN
-      moleTimers[playerIdx][idx] = setTimeout(() => {
-        if (moles.value[playerIdx][idx] >= 0) {
-          moles.value[playerIdx][idx] = -2
+      moleTimers[idx] = setTimeout(() => {
+        if (moles.value[idx] >= 0) {
+          moles.value[idx] = -2
         }
       }, upTime)
     }
-    scheduleSpawn(playerIdx)
+    scheduleSpawn()
   }, delay)
 }
 
-function whack(playerIdx, holeIdx) {
+function whack(holeIdx) {
   if (phase.value !== 'running') return
-  if (moles.value[playerIdx][holeIdx] < 0) return // 空穴或已打
+  if (moles.value[holeIdx] < 0) return
 
-  moles.value[playerIdx][holeIdx] = -1
-  scores.value[playerIdx]++
+  moles.value[holeIdx] = -1
+  scores.value[currentPlayer.value]++
 
-  // 清除消失定时器
-  if (moleTimers[playerIdx][holeIdx]) {
-    clearTimeout(moleTimers[playerIdx][holeIdx])
-    moleTimers[playerIdx][holeIdx] = null
+  if (moleTimers[holeIdx]) {
+    clearTimeout(moleTimers[holeIdx])
+    moleTimers[holeIdx] = null
   }
 
-  // 显示打击效果
   setTimeout(() => {
-    if (moles.value[playerIdx][holeIdx] === -1) {
-      moles.value[playerIdx][holeIdx] = -2
+    if (moles.value[holeIdx] === -1) {
+      moles.value[holeIdx] = -2
     }
   }, 300)
 }
@@ -198,11 +216,9 @@ function endGame() {
 
 function cleanup() {
   if (gameTimer) { clearInterval(gameTimer); gameTimer = null }
-  for (let p = 0; p < 2; p++) {
-    if (spawnTimers[p]) { clearTimeout(spawnTimers[p]); spawnTimers[p] = null }
-    for (let i = 0; i < 9; i++) {
-      if (moleTimers[p][i]) { clearTimeout(moleTimers[p][i]); moleTimers[p][i] = null }
-    }
+  if (spawnTimer) { clearTimeout(spawnTimer); spawnTimer = null }
+  for (let i = 0; i < 9; i++) {
+    if (moleTimers[i]) { clearTimeout(moleTimers[i]); moleTimers[i] = null }
   }
 }
 
@@ -223,14 +239,14 @@ onUnmounted(() => {
   border-radius: 14px; background: var(--c-card); box-shadow: var(--shadow);
   border: 2px solid transparent; transition: all 0.3s; opacity: 0.6;
 }
-.player-tag.active { border-color: var(--c-primary); opacity: 1; }
+.player-tag.active { border-color: var(--c-primary); opacity: 1; transform: scale(1.03); }
 .tag-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
 .tag-name { font-size: 14px; font-weight: 600; color: var(--c-text); }
 .tag-score { font-size: 22px; font-weight: 800; color: var(--c-primary); min-width: 28px; text-align: center; }
 .vs { font-size: 13px; font-weight: 700; color: var(--c-muted); }
 
 .timer-bar {
-  position: relative; width: 100%; max-width: 400px; height: 28px; margin: 0 auto 16px;
+  position: relative; width: 100%; max-width: 400px; height: 28px; margin: 0 auto 10px;
   background: var(--c-card); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow);
 }
 .timer-fill {
@@ -242,21 +258,27 @@ onUnmounted(() => {
   font-size: 14px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
+.turn-hint {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-bottom: 14px; font-size: 16px; font-weight: 700; color: var(--c-primary); flex-shrink: 0;
+}
+.turn-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--c-primary); }
+
 .whack-main {
-  flex: 1; display: flex; gap: 12px; justify-content: center; align-items: flex-start;
-  flex-wrap: wrap;
+  flex: 1; display: flex; justify-content: center; align-items: flex-start;
 }
 .whack-zone {
-  flex: 1; min-width: 140px; max-width: 200px; display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: column; gap: 10px; width: min(80vw, 280px);
 }
 .zone-label {
   display: flex; align-items: center; gap: 6px; justify-content: center;
   font-size: 14px; font-weight: 700; color: var(--c-text);
 }
 .zone-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+.zone-char { font-size: 18px; }
 
 .mole-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
 }
 .mole-hole {
   aspect-ratio: 1; background: radial-gradient(circle at 50% 70%, #8b7355, #6b5535);
@@ -268,9 +290,10 @@ onUnmounted(() => {
 .mole-hole:active { transform: scale(0.95); }
 .mole-hole.up { box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 12px rgba(255,217,61,0.4); }
 .mole-hole.bonk { box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 0 16px rgba(255,107,157,0.5); }
+.mole-hole.disabled { cursor: default; }
 
 .mole-character {
-  font-size: clamp(24px, 6vw, 36px); animation: moleUp 0.2s ease;
+  font-size: clamp(28px, 7vw, 40px); animation: moleUp 0.2s ease;
   padding-bottom: 4px;
 }
 @keyframes moleUp {
@@ -278,7 +301,7 @@ onUnmounted(() => {
   100% { transform: translateY(0); }
 }
 .bonk-effect {
-  font-size: clamp(24px, 6vw, 36px); animation: bonk 0.3s ease;
+  font-size: clamp(28px, 7vw, 40px); animation: bonk 0.3s ease;
 }
 @keyframes bonk {
   0% { transform: scale(0); }
@@ -295,6 +318,18 @@ onUnmounted(() => {
   background: transparent; color: var(--c-muted); border: 1px solid var(--c-border);
   border-radius: 14px; padding: 12px 22px; font-size: 16px; cursor: pointer;
 }
+
+.switch-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex;
+  align-items: center; justify-content: center; z-index: 100; padding: 20px;
+}
+.switch-card {
+  background: var(--c-card); border-radius: 24px; padding: 36px 28px; text-align: center;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.2); max-width: 320px; width: 100%;
+}
+.switch-avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 3px solid var(--c-primary); margin-bottom: 16px; }
+.switch-text { font-size: 18px; font-weight: 700; color: var(--c-text); margin-bottom: 8px; }
+.switch-sub { font-size: 16px; color: var(--c-muted); margin-bottom: 20px; }
 
 .result-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex;
