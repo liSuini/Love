@@ -181,6 +181,12 @@ function tick() {
     else if (s.dir === 'left') head.x--
     else if (s.dir === 'right') head.x++
 
+    // 穿墙：从另一边出来
+    if (head.x < 0) head.x = COLS - 1
+    else if (head.x >= COLS) head.x = 0
+    if (head.y < 0) head.y = ROWS - 1
+    else if (head.y >= ROWS) head.y = 0
+
     s.body.unshift(head)
 
     // 吃食物
@@ -197,12 +203,6 @@ function tick() {
 
   for (let i = 0; i < 2; i++) {
     const head = snakes[i].body[0]
-
-    // 撞墙
-    if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
-      newAlive[i] = false
-      continue
-    }
 
     // 撞自己
     for (let j = 1; j < snakes[i].body.length; j++) {
